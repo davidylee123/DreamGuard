@@ -9,9 +9,8 @@ let dbConnection; // Variable to store the MongoDB connection
 async function initializeDbConnection() {
     if (!dbConnection) {
         try {
-            const client = await mongodb.MongoClient.connect('mongodb+srv://dyl30:TkVrXw5WdGDs4Nb@atlascluster.to34cec.mongodb.net/', {
-                useUnifiedTopology: true
-            });
+            // Connect to the MongoDB client without any deprecated options
+            const client = await mongodb.MongoClient.connect('mongodb+srv://dyl30:TkVrXw5WdGDs4Nb@atlascluster.to34cec.mongodb.net/');
             dbConnection = client.db('vue_express').collection('posts');
         } catch (error) {
             console.error("Failed to connect to MongoDB:", error);
@@ -65,4 +64,3 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
-
