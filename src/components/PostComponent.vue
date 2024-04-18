@@ -7,26 +7,26 @@
         type="text"
         id="create-post"
         v-model="text"
-        placeholder="Bed Time:"
+        placeholder="Bed Time"
       />
-      <button v-on:click="createPost">Post</button>
+      <button @click="createPost">Enter</button>
     </div>
-    <hr />
+    <hr class="divider" />
     <p class="error" v-if="error">{{ error }}</p>
     <div class="posts-container">
+      <div v-if="posts.length === 0" class="empty-message">No posts yet.</div>
       <div
         class="post"
-        v-for="(post, index) in posts"
-        v-bind:item="post"
-        v-bind:index="index"
-        v-bind:key="post._id"
-        v-on:dblclick="deletePost(post._id)"
+        v-for="post in posts"
+        :key="post._id"
+        @dblclick="deletePost(post._id)"
       >
-        {{
-          `${
-            post.createdAt.getMonth() + 1
-          }/${post.createdAt.getDate()}/${post.createdAt.getFullYear()}`
-        }}
+        <div class="post-header">
+          <span class="date">{{ formatDate(post.createdAt) }}</span>
+          <span class="delete-icon" @click.stop="deletePost(post._id)">
+            &#x2715;
+          </span>
+        </div>
         <p class="text">{{ post.text }}</p>
       </div>
     </div>
@@ -54,26 +54,37 @@ export default {
   },
   methods: {
     async createPost() {
-      await PostService.insertPost(this.text);
-      this.posts = await PostService.getPosts();
+      try {
+        await PostService.insertPost(this.text);
+        this.text = ""; // Clear input after posting
+        this.posts = await PostService.getPosts();
+      } catch (err) {
+        this.error = err.message;
+      }
     },
     async deletePost(id) {
-      await PostService.deletePost(id);
-      this.posts = await PostService.getPosts();
+      try {
+        await PostService.deletePost(id);
+        this.posts = await PostService.getPosts();
+      } catch (err) {
+        this.error = err.message;
+      }
+    },
+    formatDate(date) {
+      const options = { year: "numeric", month: "numeric", day: "numeric" };
+      return new Date(date).toLocaleDateString(undefined, options);
     },
   },
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-div.container {
+.container {
   max-width: 800px;
-  margin: 50px auto;
+  margin: 0 auto;
   padding: 20px;
-  background: #f0f0f0;
+  background-color: #f0f0f0;
   border-radius: 20px;
-  box-shadow: -8px -8px 20px #fff, 8px 8px 20px #babecc;
 }
 
 h1 {
@@ -103,7 +114,7 @@ button {
   padding: 10px 20px;
   border: none;
   border-radius: 20px;
-  background-color: #5bd658;
+  background-color: #6a54c3;
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -112,10 +123,10 @@ button {
 }
 
 button:hover {
-  background-color: #4ec247;
+  background-color: #4b30b6;
 }
 
-hr {
+.divider {
   border: none;
   height: 1px;
   background: linear-gradient(to right, #f0f0f0, #ccc, #f0f0f0);
@@ -137,7 +148,7 @@ p.error {
   gap: 15px;
 }
 
-div.post {
+.post {
   background: white;
   padding: 20px;
   border-radius: 20px;
@@ -146,25 +157,39 @@ div.post {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-div.post:hover {
+.post:hover {
   transform: translateY(-5px);
   box-shadow: 5px 5px 15px #babecc, -5px -5px 15px #fff;
 }
 
-p.text {
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.delete-icon {
+  font-size: 1.2em;
+  color: #ff5b5f;
+  cursor: pointer;
+}
+
+.text {
   font-size: 18px;
   color: #333;
   font-weight: 400;
   margin-bottom: 10px;
-  white-space: pre-wrap; /* Preserves spaces and line breaks */
+  white-space: pre-wrap;
 }
 
-/* For the date, if you add it back */
-span.date {
-  display: block;
-  text-align: right;
+.date {
   color: #666;
   font-size: 0.8em;
-  margin-top: -10px;
+}
+
+.empty-message {
+  text-align: center;
+  color: #666;
 }
 </style>
